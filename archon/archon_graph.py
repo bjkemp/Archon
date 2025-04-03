@@ -9,7 +9,8 @@ from langgraph.types import interrupt
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from supabase import Client
-import logfire
+from models.gemini import GeminiModel
+import logging
 import os
 import sys
 
@@ -32,8 +33,8 @@ from utils.utils import get_env_var, get_clients
 # Load environment variables
 load_dotenv()
 
-# Configure logfire to suppress warnings (optional)
-logfire.configure(send_to_logfire='never')
+# Configure logging to suppress warnings (optional)
+logging.basicConfig(level=logging.WARNING)
 
 provider = get_env_var('LLM_PROVIDER') or 'OpenAI'
 base_url = get_env_var('BASE_URL') or 'https://api.openai.com/v1'
@@ -41,9 +42,15 @@ api_key = get_env_var('LLM_API_KEY') or 'no-llm-api-key-provided'
 
 is_anthropic = provider == "Anthropic"
 is_openai = provider == "OpenAI"
+is_gemini = provider == "Gemini"
 
 reasoner_llm_model_name = get_env_var('REASONER_MODEL') or 'o3-mini'
-reasoner_llm_model = AnthropicModel(reasoner_llm_model_name, api_key=api_key) if is_anthropic else OpenAIModel(reasoner_llm_model_name, base_url=base_url, api_key=api_key)
+if is_anthropic:
+    reasoner_llm_model = AnthropicModel(reasoner_llm_model_name, api_key=api_key)
+elif is_gemini:
+    reasoner_llm_model = GeminiModel(reasoner_llm_model_name, api_key=api_key)
+else:
+    reasoner_llm_model = OpenAIModel(reasoner_llm_model_name, base_url=base_url, api_key=api_key)
 
 reasoner = Agent(  
     reasoner_llm_model,
@@ -51,7 +58,12 @@ reasoner = Agent(
 )
 
 primary_llm_model_name = get_env_var('PRIMARY_MODEL') or 'gpt-4o-mini'
-primary_llm_model = AnthropicModel(primary_llm_model_name, api_key=api_key) if is_anthropic else OpenAIModel(primary_llm_model_name, base_url=base_url, api_key=api_key)
+if is_anthropic:
+    primary_llm_model = AnthropicModel(primary_llm_model_name, api_key=api_key)
+elif is_gemini:
+    primary_llm_model = GeminiModel(primary_llm_model_name, api_key=api_key)
+else:
+    primary_llm_model = OpenAIModel(primary_llm_model_name, base_url=base_url, api_key=api_key)
 
 router_agent = Agent(  
     primary_llm_model,
