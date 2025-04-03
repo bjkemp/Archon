@@ -1,0 +1,37 @@
+from pydantic_ai.models.base import BaseModel
+import google.generativeai as genai
+from typing import Optional, List, Dict, Any
+
+class GeminiModel(BaseModel):
+    def __init__(self, model_name: str, api_key: str, **kwargs):
+        super().__init__(model_name)
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel(model_name)
+        
+    async def generate(self, 
+                      prompt: str, 
+                      system_prompt: Optional[str] = None,
+                      temperature: float = 0.7,
+                      max_tokens: Optional[int] = None,
+                      stop_sequences: Optional[List[str]] = None,
+                      **kwargs) -> Dict[str, Any]:
+        
+        # Combine system prompt and user prompt if system prompt is provided
+        full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
+        
+        # Generate response
+        response = await self.model.generate_content_async(
+            full_prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=temperature,
+                max_output_tokens=max_tokens if max_tokens else None,
+                stop_sequences=stop_sequences if stop_sequences else None
+            )
+        )
+        
+        return {
+            "text": response.text,
+            "model": self.model_name,
+            "finish_reason": "stop",  # Gemini doesn't provide this explicitly
+            "usage": {}  # Gemini doesn't provide token usage information
+        }

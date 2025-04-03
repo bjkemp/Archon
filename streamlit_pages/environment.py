@@ -106,12 +106,15 @@ def environment_tab():
         "OpenAI": "https://api.openai.com/v1",
         "Anthropic": "https://api.anthropic.com/v1",
         "OpenRouter": "https://openrouter.ai/api/v1",
-        "Ollama": "http://localhost:11434/v1"
-    }
+        "Ollama": "http://localhost:11434/v1",
+        "Gemini": "N/A"  # Gemini uses the Google API directly
+        "Gemini": "N/A"  # Gemini uses the Google API directly
+}
     
     embedding_default_urls = {
         "OpenAI": "https://api.openai.com/v1",
-        "Ollama": "http://localhost:11434/v1"
+        "Ollama": "http://localhost:11434/v1",
+        "Gemini": "N/A"  # Gemini uses the Google API directly
     }
     
     # Initialize session state for provider selections if not already set
@@ -125,7 +128,7 @@ def environment_tab():
     st.subheader("1. Select Your LLM Provider")
     
     # LLM Provider dropdown
-    llm_providers = ["OpenAI", "Anthropic", "OpenRouter", "Ollama"]
+    llm_providers = ["OpenAI", "Anthropic", "OpenRouter", "Ollama", "Gemini"]
     
     selected_llm_provider = st.selectbox(
         "LLM Provider",
@@ -176,6 +179,7 @@ def environment_tab():
                         "OpenAI: https://api.openai.com/v1\n\n" + \
                         "Anthropic: https://api.anthropic.com/v1\n\n" + \
                         "OpenRouter: https://openrouter.ai/api/v1\n\n" + \
+                        "Gemini: No base URL needed (handled internally)\n\n" + \
                         "Ollama: http://localhost:11434/v1"
         
         # Get current BASE_URL or use default for selected provider
